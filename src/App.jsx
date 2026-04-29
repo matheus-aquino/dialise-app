@@ -212,6 +212,7 @@ export default function DialiseApp() {
 
   const totalIn  = history.filter(h => h.phaseKey==="infusao"  && h.volume).reduce((s,h)=>s+h.volume,0);
   const totalOut = history.filter(h => h.phaseKey==="drenagem" && h.volume).reduce((s,h)=>s+h.volume,0);
+  const debito   = totalOut - totalIn;
 
   const inputStyle = { width:"100%", padding:"10px 14px", border:`2px solid ${T.border}`, borderRadius:10, fontSize:15, fontFamily:"'DM Mono',monospace", outline:"none", background:T.inputBg, color:T.inputColor, transition:"background 0.3s,border-color 0.3s" };
 
@@ -240,37 +241,42 @@ export default function DialiseApp() {
       `}</style>
 
       {/* Header */}
-      <div style={{ background:T.headerBg, borderBottom:`1px solid ${T.headerBorder}`, padding:"14px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:50, transition:"background 0.3s,border-color 0.3s" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <div style={{ width:36, height:36, background:"linear-gradient(135deg,#3b82f6,#8b5cf6)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>💧</div>
-          <div>
-            <div style={{ fontSize:17, fontWeight:700, color:T.textPrimary, letterSpacing:"-0.3px" }}>DiáliSe</div>
-            <div style={{ fontSize:12, color:T.textMuted, fontWeight:500 }}>Controle de Diálise Peritoneal</div>
-          </div>
+      <div style={{ background:T.headerBg, borderBottom:`1px solid ${T.headerBorder}`, padding: isDesktop?"14px 32px":"12px 20px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:50, transition:"background 0.3s,border-color 0.3s", gap:12 }}>
+        {/* Logo */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
+          <div style={{ width:32, height:32, background:"linear-gradient(135deg,#3b82f6,#8b5cf6)", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>💧</div>
+          <span style={{ fontSize:16, fontWeight:700, color:T.textPrimary, letterSpacing:"-0.3px" }}>DiáliSe</span>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <div style={{ fontSize:13, color:T.cycleColor }}>Ciclo <strong style={{ color:T.textPrimary, fontFamily:"'DM Mono'" }}>{cycleCount}</strong></div>
+
+        {/* Right controls */}
+        <div style={{ display:"flex", alignItems:"center", gap: isDesktop?20:14 }}>
+          <div style={{ fontSize:13, color:T.textMuted, whiteSpace:"nowrap" }}>
+            Ciclo <strong style={{ color:T.textPrimary, fontFamily:"'DM Mono'", fontSize:15 }}>{cycleCount}</strong>
+          </div>
 
           {/* Theme switch */}
-          <button onClick={() => setDark(d=>!d)} style={{ display:"flex", alignItems:"center", gap:7, background:"none", border:"none", cursor:"pointer", padding:"4px 2px" }} title={dark ? "Tema claro" : "Tema escuro"}>
-            <span style={{ fontSize:14 }}>{dark ? "🌙" : "☀️"}</span>
-            <div style={{ width:40, height:22, borderRadius:11, background: dark ? "#3b82f6" : "#d1d5db", position:"relative", transition:"background 0.3s", flexShrink:0 }}>
-              <div style={{ position:"absolute", top:3, left: dark ? 21 : 3, width:16, height:16, borderRadius:"50%", background:"white", transition:"left 0.3s", boxShadow:"0 1px 4px rgba(0,0,0,0.25)" }} />
+          <button onClick={() => setDark(d=>!d)} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", cursor:"pointer", padding:"2px 0", flexShrink:0 }} title={dark?"Tema claro":"Tema escuro"}>
+            <span style={{ fontSize:13 }}>{dark?"🌙":"☀️"}</span>
+            <div style={{ width:36, height:20, borderRadius:10, background: dark?"#3b82f6":"#d1d5db", position:"relative", transition:"background 0.3s", flexShrink:0 }}>
+              <div style={{ position:"absolute", top:2, left: dark?18:2, width:16, height:16, borderRadius:"50%", background:"white", transition:"left 0.3s", boxShadow:"0 1px 3px rgba(0,0,0,0.2)" }} />
             </div>
           </button>
 
-          <button className="btn" onClick={() => { setEditConfig({...config}); setConfigOpen(true); }} style={{ background:T.cancelBg, color:T.cancelColor, padding:"8px 16px", fontSize:13 }}>⚙️ Configurar</button>
+          <button className="btn" onClick={() => { setEditConfig({...config}); setConfigOpen(true); }} style={{ background:T.cancelBg, color:T.cancelColor, padding:"7px 14px", fontSize:13, whiteSpace:"nowrap" }}>
+            ⚙️ {isDesktop ? "Configurar" : ""}
+          </button>
         </div>
       </div>
 
       {/* Stats row */}
       <div style={{ padding: isDesktop?"24px 32px 0":"20px 16px 0" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap: isDesktop?14:10 }}>
+        <div style={{ display:"grid", gridTemplateColumns: isDesktop?"repeat(5,1fr)":"repeat(3,1fr) repeat(2,1fr)", gap: isDesktop?14:10 }}>
           {[
-            { label:"Volume/ciclo", value:`${config.volume} mL`, icon:"💧", color:"#3b82f6" },
-            { label:"Ciclos",       value: cycleCount,            icon:"🔄", color:"#8b5cf6" },
-            { label:"Vol. total in", value:`${totalIn} mL`,       icon:"↓",  color:"#3b82f6" },
-            { label:"Vol. total out",value:`${totalOut} mL`,      icon:"↑",  color:"#10b981" },
+            { label:"Volume/ciclo",  value:`${config.volume} mL`, icon:"💧", color:"#3b82f6" },
+            { label:"Ciclos",        value: cycleCount,            icon:"🔄", color:"#8b5cf6" },
+            { label:"Vol. total in", value:`${totalIn} mL`,        icon:"↓",  color:"#3b82f6" },
+            { label:"Vol. total out",value:`${totalOut} mL`,       icon:"↑",  color:"#10b981" },
+            { label:"Débito líquido",value:`${debito} mL`,         icon:"⚖️", color: debito>0?"#10b981": debito<0?"#ef4444":"#94a3b8" },
           ].map((item) => (
             <div key={item.label} className="fade-in" style={{ background:T.cardBg, boxShadow:T.cardShadow, borderRadius:20, padding: isDesktop?"16px 14px":"12px 10px", textAlign:"center", transition:"background 0.3s" }}>
               <div style={{ fontSize: isDesktop?20:16, marginBottom:4 }}>{item.icon}</div>
@@ -405,7 +411,7 @@ export default function DialiseApp() {
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:14 }}>
                 <thead>
                   <tr style={{ borderBottom:`2px solid ${T.border}` }}>
-                    {["Ciclo","Fase","Volume","Duração real","Horário"].map((h) => (
+                    {["Ciclo","Fase","Volume","Débito/Acúmulo","Duração real","Horário"].map((h) => (
                       <th key={h} style={{ padding:"8px 12px", textAlign:"left", color:T.textSecondary, fontWeight:600, fontSize:12, textTransform:"uppercase", letterSpacing:"0.05em" }}>{h}</th>
                     ))}
                   </tr>
@@ -419,6 +425,14 @@ export default function DialiseApp() {
                       ? vol<config.volume ? "#ef4444" : "#10b981"
                       : T.textPrimary;
                     const pad = isNewCycle?"14px 12px 10px":"10px 12px";
+
+                    // Per-cycle balance: only shown on drainage row
+                    let cycleBalance = null;
+                    if (row.phaseKey === "drenagem" && vol != null) {
+                      const cycleIn = history.find(h => h.phaseKey==="infusao" && h.ciclo===row.ciclo);
+                      if (cycleIn?.volume != null) cycleBalance = vol - cycleIn.volume;
+                    }
+
                     return (
                       <tr key={row.id} className="history-row" style={{ borderBottom:`1px solid ${T.border}`, borderTop: isNewCycle?`2px solid ${T.border}`:undefined }}>
                         <td style={{ padding:pad, fontFamily:"'DM Mono'", color:T.textSecondary }}>#{row.ciclo}</td>
@@ -427,6 +441,13 @@ export default function DialiseApp() {
                         </td>
                         <td style={{ padding:pad, fontFamily:"'DM Mono'" }}>
                           {vol!=null ? <span style={{ color:volColor, fontWeight:600 }}>{vol} mL</span> : <span style={{ color:T.inactiveTime }}>—</span>}
+                        </td>
+                        <td style={{ padding:pad, fontFamily:"'DM Mono'" }}>
+                          {cycleBalance != null ? (
+                            <span style={{ fontWeight:600, color: cycleBalance>0?"#10b981":"#ef4444" }}>
+                              {cycleBalance>0 ? `↑ +${cycleBalance} mL débito` : `↓ ${cycleBalance} mL acúmulo`}
+                            </span>
+                          ) : <span style={{ color:T.inactiveTime }}>—</span>}
                         </td>
                         <td style={{ padding:pad, fontFamily:"'DM Mono'", color:T.textPrimary }}>{row.duracao} min</td>
                         <td style={{ padding:pad, color:T.textSecondary }}>{row.hora}</td>
